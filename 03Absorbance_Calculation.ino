@@ -17,10 +17,7 @@ void calculateAbsorbance (){
   digitalWrite(greenLed, LOW);
 
 
-  digitalWrite(blueLed, HIGH);
-  delay(100);
-  digitalWrite(blueLed, LOW);
-  delay(100);
+
   digitalWrite(blueLed, HIGH);
 
 
