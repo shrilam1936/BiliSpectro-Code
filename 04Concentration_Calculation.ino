@@ -25,9 +25,16 @@ void calculateConcentration(){
   yellowDye_Concentration_FINAL = yellowConc_mol * yellowDye_molWeight;
 
   //Print final concnetration!!
-  Serial.println("Concentration of FD&C Yellow 5: " + yellowDye_Concentration_FINAL + " g/l");
-  Serial.println("Concentration of FD&C Red 40: " + redDye_Concentration_FINAL + " g/l");
+  //Print final concnetration!!
+  Serial.println("Concentration of FD&C Yellow 5: ");
+  Serial.print(yellowDye_Concentration_FINAL);
+  Serial.print(" g/l");
+  Serial.println("Concentration of FD&C Red 40: ");
+  Serial.print(redDye_Concentration_FINAL);
+  Serial.print(" g/l");
 
+
+  
   delay(1000);
 
 }
