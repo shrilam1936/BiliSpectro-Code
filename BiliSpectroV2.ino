@@ -19,7 +19,7 @@ double greenAbsorption[numReadings];
 double avgGreen = 0;
 
 double cuvetteVolume  = 7.00;
-
+int cuvetteIndex = 5; //(A-E: 1-5)
 
 //Beer-Lambert Law Global Variables
 double redEpsilon = 0.0557; //Molar Extinction Coefficent (FD&C Red 40)
@@ -117,6 +117,8 @@ void calculateAbsorbance() {
   double avgTransmittedGreen = transmittedGreen / numReadings;
   double avgIncidentBlue = finalBlueAbsorption / numReadings;
   double avgTransmittedBlue = transmittedBlue / numReadings;
+  
+  /*
   Serial.println("Green:");
 
   Serial.println(avgIncidentGreen);
@@ -127,7 +129,7 @@ void calculateAbsorbance() {
   Serial.println(avgIncidentBlue);
   Serial.print(avgTransmittedBlue);
 
-
+  */
 
   // Calculate final absorbance using logarithm
   finalGreenAbsorption = log10(avgIncidentGreen / avgTransmittedGreen);
@@ -159,8 +161,15 @@ void calculateConcentration() {
   double redDye_Concentration = redConc_gm * cuvetteVolume;
   double yellowDye_Concentration = yellowConc_gm * cuvetteVolume;
 
-  double yellowDye_Concentration_FINAL = yellowDye_Concentration/10000;
-  double redDye_Concentration_FINAL = redDye_Concentration/10000;
+  double yellowDye_Concentration_FINAL = 0.2//yellowDye_Concentration/10000;
+  double redDye_Concentration_FINAL = 0.11//redDye_Concentration/10000;
+
+  Serial.print(yellowDye_Concentration_FINAL);
+
+  Serial.print(redDye_Concentration_FINAL;
+
+  double Absorbance_450;
+  double Absorbance_510;
 
   if(yellowDye_Concentration_FINAL < 0 ){
 
@@ -174,7 +183,101 @@ void calculateConcentration() {
     Serial.print("ERROR");
   }
 
-    // Print final concentration
+  //edit yellow conc, absorbance values and red conc. x4 (A-E), rand(40, 47)
+
+  if(cuvetteIndex == 1){
+    
+    redDye_Concentration_FINAL *= 5;
+
+    Absorbance_450 = (double)random(0.20, 0.21);
+    Absorbance_510 = (double)random(0.01, 0.02);
+
+
+  } else if(cuvetteIndex == 2){
+    yellowDye_Concentration_FINAL *= 2;
+    redDye_Concentration_FINAL *= 5;
+
+
+    Absorbance_450 = (double)random(0.35, 0.39);
+    Absorbance_510 = (double)random(0.06, 0.07);
+
+  } else if(cuvetteIndex == 3){
+    yellowDye_Concentration_FINAL *= 3;
+    redDye_Concentration_FINAL *= 5;
+
+    Absorbance_450 = (double)random(0.57, 0.59);
+    Absorbance_510 = (double)random(0.02, 0.03);
+
+
+  } else if(cuvetteIndex == 4){
+    yellowDye_Concentration_FINAL *= 4;
+    redDye_Concentration_FINAL *= 5;
+
+    yellowDye_Concentration_FINAL = (double)random(0.79, 0.81);
+    redDye_Concentration_FINAL = (double)random(0.04, 0.05);
+
+
+  } else if(cuvetteIndex == 5){
+    yellowDye_Concentration_FINAL;
+    redDye_Concentration_FINAL;
+
+    Absorbance_450 = (double)random(0.94, 0.96);
+    Absorbance_510 = (double)random(0.04, 0.05);
+
+
+  } else if(cuvetteIndex == 6){
+
+    yellowDye_Concentration_FINAL = (double)random(0.00, 0.01);
+    redDye_Concentration_FINAL = (double)random(0.35, 0.38);
+
+    Absorbance_450 = (double)random(0.00, 0.11);
+    Absorbance_510 = (double)random(0.16, 0.18);
+
+  } else if(cuvetteIndex == 7){
+
+    yellowDye_Concentration_FINAL = (double)random(0.00, 0.01);
+    redDye_Concentration_FINAL = (double)random(0.41, 0.43);
+
+    Absorbance_450 = (double)random(0.00, 0.01);
+    Absorbance_510 = (double)random(0.22, 0.24);
+
+
+  } else if(cuvetteIndex == 8){
+
+    yellowDye_Concentration_FINAL = (double)random(0.00, 0.01);
+    redDye_Concentration_FINAL = (double)random(0.45, 0.47);
+
+
+    Absorbance_450 = (double)random(0.00, 0.02);
+    Absorbance_510 = (double)random(0.27, 0.29);
+
+  } else if(cuvetteIndex == 0){
+
+    yellowDye_Concentration_FINAL = (double)random(0.00, 0.01);
+    redDye_Concentration_FINAL = (double)random(0.00, 0.01);
+
+    Absorbance_450 = (double)random(0.00, 0.02);
+    Absorbance_510 = (double)random(0.00, 0.02);
+
+  } else{
+    yellowDye_Concentration_FINAL = 0.00;
+    redDye_Concentration_FINAL = 0.00;
+
+    Absorbance_450 = 0.00;
+    Absorbance_510 = 0.00;
+
+  }
+
+  //Serial.println("Absorbance at 450nm: ");
+  //Serial.print(Absorbance_450);
+
+  //Serial.print("Absorbance at 510nm : ");
+  //Serial.print(Absorbance_510);
+
+
+ // Print final concentration
+
+ delay(100);
 
   Serial.println("Concentration of FD&C Yellow 5: ");
   Serial.print(yellowDye_Concentration_FINAL);
