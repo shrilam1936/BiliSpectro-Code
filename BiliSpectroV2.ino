@@ -183,8 +183,7 @@ if(cuvetteIndex == 1){
     
     redDye_Concentration_FINAL *= 5;
 
-    Absorbance_450 = (double)random(0.20, 0.21);
-    Absorbance_510 = (double)random(0.01, 0.02);
+
 
 
   } else if(cuvetteIndex == 2){
@@ -192,31 +191,24 @@ if(cuvetteIndex == 1){
     redDye_Concentration_FINAL *= 5;
 
 
-    Absorbance_450 = (double)random(0.35, 0.39);
-    Absorbance_510 = (double)random(0.06, 0.07);
-
   } else if(cuvetteIndex == 3){
     yellowDye_Concentration_FINAL *= 3;
     redDye_Concentration_FINAL *= 5;
 
-    Absorbance_450 = (double)random(0.57, 0.59);
-    Absorbance_510 = (double)random(0.02, 0.03);
+
 
 
   } else if(cuvetteIndex == 4){
     yellowDye_Concentration_FINAL *= 4;
     redDye_Concentration_FINAL *= 5;
 
-    //yellowDye_Concentration_FINAL = (double)random(0.79, 0.81);
-    //redDye_Concentration_FINAL = (double)random(0.04, 0.05);
+
 
 
   } else if(cuvetteIndex == 5){
     yellowDye_Concentration_FINAL*=5;
     redDye_Concentration_FINAL*=4;
 
-    Absorbance_450 = (double)random(0.94, 0.96);
-    Absorbance_510 = (double)random(0.04, 0.05);
 
 
   } else if(cuvetteIndex == 6){
@@ -228,12 +220,12 @@ if(cuvetteIndex == 1){
     yellowDye_Concentration_FINAL = 0.00;
     redDye_Concentration_FINAL = 0.00;
 
-    println("ERROR_");
-    Serial.println("Absorbance at 450nm: ");
-    Serial.print("0.00");
+    println("ERROR_no_or_negative_values");
+    //Serial.println("Absorbance at 450nm: ");
+    //Serial.print("0.00");
 
-    Serial.print("Absorbance at 510nm : ");
-    Serial.print("0.00");
+    //Serial.print("Absorbance at 510nm : ");
+    //Serial.print("0.00");
   } else if(cuvetteIndex == 8){
 
     yellowDye_Concentration_FINAL;
