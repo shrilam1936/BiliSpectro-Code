@@ -169,13 +169,13 @@ void calculateConcentration() {
 if(yellowDye_Concentration_FINAL < 0 ){
 
     yellowDye_Concentration_FINAL = 0.00;
-    Serial.print("ERROR");
+    Serial.print("ERROR: yellow");
 
   }
   if(redDye_Concentration_FINAL < 0 ){
 
     redDye_Concentration_FINAL = 0.00;
-    Serial.print("ERROR");
+    Serial.print("ERROR: red");
   }
 
   delay(100);
