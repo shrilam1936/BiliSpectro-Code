@@ -98,7 +98,7 @@ void calculateAbsorbance() {
   delay(4000);
 
   for(int i= 0; i<numReadings; i++){
-    analogWrite(greenLed, 5);
+    analogWrite(greenLed, 200);
     delay(100);
     transmittedGreen += analogRead(photodiode);
     analogWrite(greenLed, 0);
@@ -107,7 +107,7 @@ void calculateAbsorbance() {
   delay(1000);
 
   for(int i=0; i<numReadings; i++){
-    analogWrite(blueLed, 5);
+    analogWrite(blueLed, 200);
     delay(100);
     transmittedBlue += analogRead(photodiode);
     analogWrite(blueLed, 0);
