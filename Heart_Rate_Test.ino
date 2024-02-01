@@ -40,13 +40,12 @@ void loop()
 {
   long irValue = particleSensor.getIR();
 
-  if (checkForBeat(irValue) == true)
-  {
-    //We sensed a beat!
+  if (checkForBeat(irValue) == true){
+    
     long delta = millis() - lastBeat;
     lastBeat = millis();
-
     beatsPerMinute = 60 / (delta / 1000.0);
+    
 
     if (beatsPerMinute < 255 && beatsPerMinute > 20)
     {
