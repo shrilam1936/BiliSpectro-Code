@@ -1,0 +1,96 @@
+% Constants
+NUM_READINGS = 15; % Number of readings for averaging
+PATH_LENGTH = 0.03; % Path length in meters (3 cm)
+WAVELENGTH_GREEN = 510; % Wavelength for green LED in nm
+WAVELENGTH_BLUE = 450; % Wavelength for blue LED in nm
+GREEN_EMISSION = 255; % Green LED intensity
+BLUE_EMISSION = 255; % Blue LED intensity
+SAMPLE_VOLUME = 7e-6; % Volume of sample in cubic meters (7 microliters)
+YELLOW_MOLAR_EXTINCTION = 0.19; % Molar extinction coefficient for FD&C Yellow 5
+RED_MOLAR_EXTINCTION = 0.0557; % Molar extinction coefficient for FD&C Red 40
+YELLOW_MOL_WEIGHT = 534.36; % Molecular weight of FD&C Yellow 5 in g/mol
+RED_MOL_WEIGHT = 496.43; % Molecular weight of FD&C Red 40 in g/mol
+
+% Infant tissue properties
+skinPigmentation = 0.1; % Skin pigmentation (10% absorption)
+tissueThickness = 0.003; % Tissue thickness in meters (3 mm)
+bloodVolume = 0.05; % Blood volume fraction in tissue (5%)
+
+% Simulate incident light collection for a specific wavelength and LED intensity
+function intensity = simulateIncidentLight(wavelength, emission)
+    % Simulate intensity of incident light at the specified wavelength
+    % For simplicity, we assume no tissue absorption for incident light
+    intensity = emission;
+end
+
+% Simulate transmitted light collection for a specific wavelength and LED intensity
+function intensity = simulateTransmittedLight(wavelength, emission, absorption)
+    % Simulate intensity of transmitted light at the specified wavelength
+    % For simplicity, we assume Beer-Lambert law for light-tissue interaction
+    intensity = emission * exp(-absorption * PATH_LENGTH);
+end
+
+% Simulate heart rate detection using PPG sensor
+function ppgSignal = simulatePPGHeartRate(heartRate, numSamples)
+    % Simulate PPG signal based on heart rate
+    % Generate a sinusoidal wave with frequency corresponding to heart rate
+    t = linspace(0, 1, numSamples); % Time vector (0 to 1 second)
+    ppgSignal = sin(2 * pi * heartRate * t);
+end
+
+% Calculate absorbance using Beer-Lambert law
+function absorbance = calculateAbsorbance(incident, transmitted)
+    % Calculate absorbance using Beer-Lambert law: A = -log10(T / I)
+    % Where T is transmitted intensity and I is incident intensity
+    absorbance = -log10(transmitted / incident);
+end
+
+% Calculate concentration using Beer-Lambert law
+function concentration = calculateConcentration(absorbance, epsilon, pathLength)
+    % Calculate concentration using Beer-Lambert law: A = ε * c * l
+    % Rearrange to solve for concentration: c = A / (ε * l)
+    concentration = absorbance / (epsilon * pathLength);
+end
+
+% Simulate incident and transmitted light collection for green LED
+incidentGreen = zeros(1, NUM_READINGS);
+transmittedGreen = zeros(1, NUM_READINGS);
+for i = 1:NUM_READINGS
+    incidentGreen(i) = simulateIncidentLight(WAVELENGTH_GREEN, GREEN_EMISSION);
+    transmittedGreen(i) = simulateTransmittedLight(WAVELENGTH_GREEN, GREEN_EMISSION, skinPigmentation);
+end
+
+% Simulate incident and transmitted light collection for blue LED
+incidentBlue = zeros(1, NUM_READINGS);
+transmittedBlue = zeros(1, NUM_READINGS);
+for i = 1:NUM_READINGS
+    incidentBlue(i) = simulateIncidentLight(WAVELENGTH_BLUE, BLUE_EMISSION);
+    transmittedBlue(i) = simulateTransmittedLight(WAVELENGTH_BLUE, BLUE_EMISSION, skinPigmentation);
+end
+
+% Simulate heart rate detection using PPG sensor
+heartRate = 120; % Infant heart rate in beats per minute
+numSamples = 1000; % Number of samples for PPG signal
+ppgSignal = simulatePPGHeartRate(heartRate, numSamples);
+
+% Calculate average incident and transmitted light intensities
+avgIncidentGreen = mean(incidentGreen);
+avgTransmittedGreen = mean(transmittedGreen);
+avgIncidentBlue = mean(incidentBlue);
+avgTransmittedBlue = mean(transmittedBlue);
+
+% Calculate absorbance for green and blue wavelengths
+absorbanceGreen = calculateAbsorbance(avgIncidentGreen, avgTransmittedGreen);
+absorbanceBlue = calculateAbsorbance(avgIncidentBlue, avgTransmittedBlue);
+
+% Calculate concentrations using Beer-Lambert law
+yellowConcentration = calculateConcentration(absorbanceBlue, YELLOW_MOLAR_EXTINCTION, PATH_LENGTH);
+redConcentration = calculateConcentration(absorbanceGreen, RED_MOLAR_EXTINCTION, PATH_LENGTH);
+
+% Convert concentrations to milligrams
+yellowConcentrationMG = yellowConcentration * YELLOW_MOL_WEIGHT * SAMPLE_VOLUME * 1000; % Convert to mg
+redConcentrationMG = redConcentration * RED_MOL_WEIGHT * SAMPLE_VOLUME * 1000; % Convert to mg
+
+% Display results
+disp(['Concentration of FD&C Yellow 5: ', num2str(yellowConcentrationMG), ' mg']);
+disp(['Concentration of FD&C Red 40: ', num2str(redConcentrationMG), ' mg']);
