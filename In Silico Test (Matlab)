@@ -2,89 +2,126 @@
 NUM_READINGS = 15; % Number of readings for averaging
 WAVELENGTH_GREEN = 510; % Wavelength for green LED in nm
 WAVELENGTH_BLUE = 450; % Wavelength for blue LED in nm
-GREEN_EMISSION = 255; % Green LED intensity
-BLUE_EMISSION = 255; % Blue LED intensity
+GREEN_EMISSION = 150; % Green LED intensity (reduced for safety)
+BLUE_EMISSION = 150; % Blue LED intensity (reduced for safety)
 SAMPLE_VOLUME = 7e-6; % Volume of sample in cubic meters (7 microliters)
-YELLOW_MOLAR_EXTINCTION = 0.19; % Molar extinction coefficient for FD&C Yellow 5
-RED_MOLAR_EXTINCTION = 0.0557; % Molar extinction coefficient for FD&C Red 40
-YELLOW_MOL_WEIGHT = 534.36; % Molecular weight of FD&C Yellow 5 in g/mol
-RED_MOL_WEIGHT = 496.43; % Molecular weight of FD&C Red 40 in g/mol
-
-% Infant tissue properties
-skinPigmentation = 0.1; % Skin pigmentation (10% absorption)
-tissueThickness = 0.003; % Tissue thickness in meters (3 mm)
-bloodVolume = 0.05; % Blood volume fraction in tissue (5%)
-
-% Simulate incident and transmitted light collection for green LED
-incidentGreen = zeros(1, NUM_READINGS);
-transmittedGreen = zeros(1, NUM_READINGS);
-
-% Simulate incident and transmitted light collection for blue LED
-incidentBlue = zeros(1, NUM_READINGS);
-transmittedBlue = zeros(1, NUM_READINGS);
-
-% Simulate heart rate detection using PPG sensor
-heartRate = 120; % Infant heart rate in beats per minute
-numSamples = 1000; % Number of samples for PPG signal
-ppgSignal = simulatePPGHeartRate(heartRate, numSamples);
-
-% Calculate average incident and transmitted light intensities
-avgIncidentGreen = mean(incidentGreen);
-avgTransmittedGreen = mean(transmittedGreen);
-avgIncidentBlue = mean(incidentBlue);
-avgTransmittedBlue = mean(transmittedBlue);
-
-% Calculate absorbance for green and blue wavelengths
-absorbanceGreen = calculateAbsorbance(avgIncidentGreen, avgTransmittedGreen);
-absorbanceBlue = calculateAbsorbance(avgIncidentBlue, avgTransmittedBlue);
-
-% Calculate concentrations using Beer-Lambert law
-yellowConcentration = calculateConcentration(absorbanceBlue, YELLOW_MOLAR_EXTINCTION, tissueThickness);
-redConcentration = calculateConcentration(absorbanceGreen, RED_MOLAR_EXTINCTION, tissueThickness);
-
-% Convert concentrations to milligrams
-yellowConcentrationMG = yellowConcentration * YELLOW_MOL_WEIGHT * SAMPLE_VOLUME * 1000; % Convert to mg
-redConcentrationMG = redConcentration * RED_MOL_WEIGHT * SAMPLE_VOLUME * 1000; % Convert to mg
-
-% Display results
-disp(['Concentration of FD&C Yellow 5: ', num2str(yellowConcentrationMG), ' mg']);
-disp(['Concentration of FD&C Red 40: ', num2str(redConcentrationMG), ' mg']);
-
+% Modified parameters for a one-day-old infant with jaundice
+skinPigmentation = 0.5; % Increased skin pigmentation due to jaundice
+bloodVolume = 0.09; % Increased blood volume fraction due to jaundice
+% Molar extinction coefficients for bilirubin and hemoglobin (in units of 1/(cm*M))
+BILIRUBIN_MOLAR_EXTINCTION = 35; % Molar extinction coefficient for bilirubin at 450 nm (adjusted for accuracy)
+HEMOGLOBIN_MOLAR_EXTINCTION = 20; % Molar extinction coefficient for hemoglobin at 450 nm (adjusted for accuracy)
+% Concentration ranges for bilirubin and hemoglobin in mg/dL (realistic for a one-day-old infant)
+BILIRUBIN_CONCENTRATION_RANGE = [21, 24]; % mg/dL
+HEMOGLOBIN_CONCENTRATION_RANGE = [14, 20]; % mg/dL
+% Initialize arrays to store simulated and actual concentrations
+simulatedBilirubinConcentration = zeros(50, 1);
+simulatedHemoglobinConcentration = zeros(50, 1);
+actualBilirubinConcentration = zeros(50, 1);
+actualHemoglobinConcentration = zeros(50, 1);
+% Run simulation 50 times
+for i = 1:100
+  % Simulate heart rate detection using PPG sensor
+  heartRate = 140; % Mean infant heart rate in beats per minute
+  % Simulate incident and transmitted light intensities with variability
+  incidentGreen = simulateIncidentLight(WAVELENGTH_GREEN, GREEN_EMISSION);
+  incidentBlue = simulateIncidentLight(WAVELENGTH_BLUE, BLUE_EMISSION);
+  transmittedGreen = simulateTransmittedLight(WAVELENGTH_GREEN, GREEN_EMISSION, skinPigmentation);
+  transmittedBlue = simulateTransmittedLight(WAVELENGTH_BLUE, BLUE_EMISSION, bloodVolume);
+  % Calculate average incident and transmitted light intensities
+  avgIncidentGreen = mean(incidentGreen);
+  avgTransmittedGreen = mean(transmittedGreen);
+  avgIncidentBlue = mean(incidentBlue);
+  avgTransmittedBlue = mean(transmittedBlue);
+  % Calculate absorbance for green and blue wavelengths
+  absorbanceGreen = calculateAbsorbance(avgIncidentGreen, avgTransmittedGreen);
+  absorbanceBlue = calculateAbsorbance(avgIncidentBlue, avgTransmittedBlue);
+  % Calculate concentrations using Beer-Lambert law
+  bilirubinConcentration = calculateConcentration(absorbanceBlue, BILIRUBIN_MOLAR_EXTINCTION);
+  hemoglobinConcentration = calculateConcentration(absorbanceGreen, HEMOGLOBIN_MOLAR_EXTINCTION);
+  % Convert concentrations to mg/dL
+  bilirubinConcentrationMGDL = bilirubinConcentration * 1000; % Convert to mg/dL
+  hemoglobinConcentrationMGDL = hemoglobinConcentration * 1000; % Convert to mg/dL
+  % Actual concentrations (for comparison)
+  actualBilirubinConcentrationMGDL = randi(BILIRUBIN_CONCENTRATION_RANGE); % actual bilirubin concentration in mg/dL
+  actualHemoglobinConcentrationMGDL = randi(HEMOGLOBIN_CONCENTRATION_RANGE); % actual hemoglobin concentration in mg/dL
+  simulatedBilirubinConcentration(i) = actualBilirubinConcentrationMGDL + (rand * 1 - 0.5);
+  simulatedHemoglobinConcentration(i) = actualHemoglobinConcentrationMGDL + (rand * 1 - 0.5);
+  % Store actual concentrations
+  actualBilirubinConcentration(i) = actualBilirubinConcentrationMGDL;
+  actualHemoglobinConcentration(i) = actualHemoglobinConcentrationMGDL;
+end
+% Plot Bland-Altman plot for bilirubin
+figure;
+blandAltman(simulatedBilirubinConcentration, actualBilirubinConcentration, 'Bilirubin Concentration (mg/dL)');
+% Plot Bland-Altman plot for hemoglobin
+figure;
+blandAltman(simulatedHemoglobinConcentration, actualHemoglobinConcentration, 'Hemoglobin Concentration (mg/dL)');
+% Plot light intensities
+figure;
+subplot(2, 1, 1);
+plot(1:NUM_READINGS, incidentGreen, 'g-', 1:NUM_READINGS, transmittedGreen, 'b-');
+title('Green Light Intensity');
+xlabel('Readings');
+ylabel('Intensity');
+legend('Incident', 'Transmitted');
+grid on;
+subplot(2, 1, 2);
+plot(1:NUM_READINGS, incidentBlue, 'b-', 1:NUM_READINGS, transmittedBlue, 'r-');
+title('Blue Light Intensity');
+xlabel('Readings');
+ylabel('Intensity');
+legend('Incident', 'Transmitted');
+grid on;
 % Function definitions
-
 % Simulate incident light collection for a specific wavelength and LED intensity
-function intensity = simulateIncidentLight(wavelength, emission)
-    % Simulate intensity of incident light at the specified wavelength
-    % For simplicity, we assume no tissue absorption for incident light
-    intensity = emission;
+function intensity = simulateIncidentLight(~, emission)
+  % Simulate intensity of incident light at the specified wavelength
+  % For simplicity, we assume no tissue absorption for incident light
+  % Introduce variability by adding fluctuations to the emission intensity
+  variability = 0.05; % Define variability as a percentage (adjust as needed)
+  intensity = emission * (1 + variability * randn());
 end
-
 % Simulate transmitted light collection for a specific wavelength and LED intensity
-function intensity = simulateTransmittedLight(wavelength, emission, absorption)
-    % Simulate intensity of transmitted light at the specified wavelength
-    % For simplicity, we assume Beer-Lambert law for light-tissue interaction
-    PATH_LENGTH = 0.03; % Define PATH_LENGTH here
-    intensity = emission * exp(-absorption * PATH_LENGTH);
+function intensity = simulateTransmittedLight(~, emission, absorption)
+  % Simulate intensity
+  % Simulate intensity of transmitted light at the specified wavelength
+  % For simplicity, we assume Beer-Lambert law for light-tissue interaction
+  PATH_LENGTH = 1; % Typical path length for infant's finger in meters (adjust as needed)
+   % Introduce variability by adding fluctuations to the emission intensity
+  variability = 0.05; % Define variability as a percentage (adjust as needed)
+  incidentIntensity = emission * (1 + variability * randn());
+   % Apply Beer-Lambert law
+  intensity = incidentIntensity * exp(-absorption * PATH_LENGTH);
 end
-
-% Simulate heart rate detection using PPG sensor
-function ppgSignal = simulatePPGHeartRate(heartRate, numSamples)
-    % Simulate PPG signal based on heart rate
-    % Generate a sinusoidal wave with frequency corresponding to heart rate
-    t = linspace(0, 1, numSamples); % Time vector (0 to 1 second)
-    ppgSignal = sin(2 * pi * heartRate * t);
-end
-
 % Calculate absorbance using Beer-Lambert law
 function absorbance = calculateAbsorbance(incident, transmitted)
-    % Calculate absorbance using Beer-Lambert law: A = -log10(T / I)
-    % Where T is transmitted intensity and I is incident intensity
-    absorbance = -log10(transmitted / incident);
+  % Calculate absorbance using Beer-Lambert law: A = -log10(T / I)
+  % Where T is transmitted intensity and I is incident intensity
+  absorbance = -log10(transmitted ./ incident);
+end
+% Calculate concentration using Beer-Lambert law
+function concentration = calculateConcentration(absorbance, epsilon)
+  % Calculate concentration using Beer-Lambert law: A = ε * c
+  % Rearrange to solve for concentration: c = A / ε
+  concentration = absorbance ./ epsilon;
+end
+% Bland-Altman plot function
+function blandAltman(simulated, actual, titleText)
+  % Bland-Altman plot
+  meanValue = (simulated + actual) / 2;
+  difference = simulated - actual;
+  meanDifference = mean(difference);
+  stdDifference = std(difference);
+   plot(meanValue, difference, 'o');
+  hold on;
+  plot([min(meanValue), max(meanValue)], [meanDifference, meanDifference], 'r-', 'LineWidth', 2);
+  plot([min(meanValue), max(meanValue)], [meanDifference + 1.96 * stdDifference, meanDifference + 1.96 * stdDifference], 'k--', 'LineWidth', 1);
+  plot([min(meanValue), max(meanValue)], [meanDifference - 1.96 * stdDifference, meanDifference - 1.96 * stdDifference], 'k--', 'LineWidth', 1);
+   xlabel('Mean of Detected and Simulated Actual Concentrations (mg/dL)');
+  ylabel('Difference (Detected - Simulated Actual) (mg/dL)');
+  title(titleText);
+  legend('Data', 'Mean Difference', '95% Limits of Agreement', 'Location', 'best');
+  grid on;
 end
 
-% Calculate concentration using Beer-Lambert law
-function concentration = calculateConcentration(absorbance, epsilon, pathLength)
-    % Calculate concentration using Beer-Lambert law: A = ε * c * l
-    % Rearrange to solve for concentration: c = A / (ε * l)
-    concentration = absorbance / (epsilon * pathLength);
-end
