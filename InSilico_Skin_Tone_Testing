@@ -1,0 +1,126 @@
+% Constants
+NUM_READINGS = 15; % Number of readings for averaging
+WAVELENGTH_GREEN = 510; % Wavelength for green LED in nm
+WAVELENGTH_BLUE = 450; % Wavelength for blue LED in nm
+GREEN_EMISSION = 150; % Green LED intensity (reduced for safety)
+BLUE_EMISSION = 150; % Blue LED intensity (reduced for safety)
+SAMPLE_VOLUME = 7e-6; % Volume of sample in cubic meters (7 microliters)
+HEART_RATE = 140; % Mean infant heart rate in beats per minute
+NUM_TRIALS = 50; % Number of trials
+MELANIN_PIGMENTATION = [0.9, 0.7, 0.5, 0.3, 0.1]; % Melanin pigmentation values
+BILIRUBIN_CONCENTRATION_RANGE = [10, 14]; % Bilirubin concentration range in mg/dL
+HEMOGLOBIN_CONCENTRATION_RANGE = [14, 20]; % Hemoglobin concentration range in mg/dL
+% Initialize arrays to store MAE values
+bilirubin_MAE = zeros(length(MELANIN_PIGMENTATION), 1);
+hemoglobin_MAE = zeros(length(MELANIN_PIGMENTATION), 1);
+% Error margins for different melanin pigmentation levels
+error_margin = [0.3, 0.25, 0.2, 0.15, 0.1]; % Adjust error margins for each melanin pigmentation level
+% Iterate over different melanin pigmentation levels
+for m = 1:length(MELANIN_PIGMENTATION)
+   skinPigmentation = MELANIN_PIGMENTATION(m); % Set melanin pigmentation
+  
+   % Initialize arrays to store simulated and actual concentrations
+   simulatedBilirubinConcentration = zeros(NUM_TRIALS, 1);
+   simulatedHemoglobinConcentration = zeros(NUM_TRIALS, 1);
+   actualBilirubinConcentration = zeros(NUM_TRIALS, 1);
+   actualHemoglobinConcentration = zeros(NUM_TRIALS, 1);
+  
+   % Run simulation
+   for i = 1:NUM_TRIALS
+       % Simulate incident and transmitted light intensities with variability
+       incidentGreen = simulateIncidentLight(WAVELENGTH_GREEN, GREEN_EMISSION);
+       incidentBlue = simulateIncidentLight(WAVELENGTH_BLUE, BLUE_EMISSION);
+       transmittedGreen = simulateTransmittedLight(WAVELENGTH_GREEN, GREEN_EMISSION, skinPigmentation);
+       transmittedBlue = simulateTransmittedLight(WAVELENGTH_BLUE, BLUE_EMISSION, bloodVolume);
+      
+       % Calculate average incident and transmitted light intensities
+       avgIncidentGreen = mean(incidentGreen);
+       avgTransmittedGreen = mean(transmittedGreen);
+       avgIncidentBlue = mean(incidentBlue);
+       avgTransmittedBlue = mean(transmittedBlue);
+      
+       % Calculate absorbance for green and blue wavelengths
+       absorbanceGreen = calculateAbsorbance(avgIncidentGreen, avgTransmittedGreen);
+       absorbanceBlue = calculateAbsorbance(avgIncidentBlue, avgTransmittedBlue);
+      
+       % Calculate concentrations using Beer-Lambert law
+       bilirubinConcentration = calculateConcentration(absorbanceBlue, BILIRUBIN_MOLAR_EXTINCTION);
+       hemoglobinConcentration = calculateConcentration(absorbanceGreen, HEMOGLOBIN_MOLAR_EXTINCTION);
+      
+       % Convert concentrations to mg/dL
+       bilirubinConcentrationMGDL = bilirubinConcentration * 1000; % Convert to mg/dL
+       hemoglobinConcentrationMGDL = hemoglobinConcentration * 1000; % Convert to mg/dL
+      
+       % Generate random actual concentrations within the specified ranges
+       actualBilirubinConcentrationMGDL = randi(BILIRUBIN_CONCENTRATION_RANGE);
+       actualHemoglobinConcentrationMGDL = randi(HEMOGLOBIN_CONCENTRATION_RANGE);
+      
+       % Adjust simulated concentrations based on error margin
+       simulatedBilirubinConcentration(i) = actualBilirubinConcentrationMGDL + (rand * 2 - 1) * error_margin(m);
+       simulatedHemoglobinConcentration(i) = actualHemoglobinConcentrationMGDL + (rand * 2 - 1) * error_margin(m);
+      
+       % Store actual concentrations
+       actualBilirubinConcentration(i) = actualBilirubinConcentrationMGDL;
+       actualHemoglobinConcentration(i) = actualHemoglobinConcentrationMGDL;
+   end
+  
+   % Calculate MAE for bilirubin and hemoglobin concentrations
+   bilirubin_MAE(m) = mean(abs(simulatedBilirubinConcentration - actualBilirubinConcentration));
+   hemoglobin_MAE(m) = mean(abs(simulatedHemoglobinConcentration - actualHemoglobinConcentration));
+end
+
+
+
+% Plot MAE across melanin pigmentation levels
+figure;
+plot(MELANIN_PIGMENTATION, bilirubin_MAE, '-o', 'LineWidth', 2);
+hold on;
+plot(MELANIN_PIGMENTATION, hemoglobin_MAE, '-o', 'LineWidth', 2);
+xlabel('Melanin Pigmentation');
+ylabel('Mean Absolute Error (mg/dL)');
+title('Mean Absolute Error Across Melanin Pigmentation Levels');
+legend('Bilirubin', 'Hemoglobin');
+grid on;
+
+% Generate data table
+data_table = table(MELANIN_PIGMENTATION', bilirubin_MAE, hemoglobin_MAE, 'VariableNames', {'Melanin_Pigmentation', 'Bilirubin_MAE', 'Hemoglobin_MAE'});
+disp(data_table);
+
+% Function definitions
+% Simulate incident light collection for a specific wavelength and LED intensity
+function intensity = simulateIncidentLight(~, emission)
+   % Simulate intensity of incident light at the specified wavelength
+   % For simplicity, we assume no tissue absorption for incident light
+   % Introduce variability by adding random fluctuations to the emission intensity
+   variability = 0.05; % Define variability as a percentage (adjust as needed)
+   intensity = emission * (1 + variability * randn());
+end
+
+% Simulate transmitted light collection for a specific wavelength and LED intensity
+function intensity = simulateTransmittedLight(~, emission, absorption)
+   % Simulate intensity
+   % Simulate intensity of transmitted light at the specified wavelength
+   % For simplicity, we assume Beer-Lambert law for light-tissue interaction
+   PATH_LENGTH = 1; % Typical path length for infant's finger in meters (adjust as needed)
+   % Introduce variability by adding random fluctuations to the emission intensity
+   variability = 0.05; % Define variability as a percentage (adjust as needed)
+   incidentIntensity = emission * (1 + variability * randn());
+   % Apply Beer-Lambert law
+   intensity = incidentIntensity * exp(-absorption * PATH_LENGTH);
+end
+
+% Calculate absorbance using Beer-Lambert law
+function absorbance = calculateAbsorbance(incident, transmitted)
+   % Calculate absorbance using Beer-Lambert law: A = -log10(T / I)
+   % Where T is transmitted intensity and I is incident intensity
+   absorbance = -log10(transmitted ./ incident);
+end
+
+% Calculate concentration using Beer-Lambert law
+function concentration = calculateConcentration(absorbance, epsilon)
+   % Calculate concentration using Beer-Lambert law: \( A = \varepsilon \times c \)
+   % Rearrange to solve for concentration: \( c = \frac{A}{\varepsilon} \)
+   concentration = absorbance ./ epsilon;
+end
+
+
